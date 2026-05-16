@@ -10,14 +10,27 @@ import { api } from "./api";
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function check() {
       try {
-        const { data } = await api.get("/auth/me");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          setUser(false);
+          return;
+        }
+
+        const { data } = await api.get("/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         setUser(data);
       } catch {
+        localStorage.removeItem("token");
         setUser(false);
       }
     }
@@ -32,9 +45,13 @@ export function AuthProvider({ children }) {
         password,
       });
 
-      setUser(data);
+      localStorage.setItem("token", data.token);
+
+      setUser(data.user);
+
       return true;
-    } catch {
+    } catch (err) {
+      console.log(err);
       return false;
     }
   }
@@ -47,18 +64,19 @@ export function AuthProvider({ children }) {
         password,
       });
 
-      setUser(data);
+      localStorage.setItem("token", data.token);
+
+      setUser(data.user);
+
       return true;
-    } catch {
+    } catch (err) {
+      console.log(err);
       return false;
     }
   }
 
   async function logout() {
-    try {
-      await api.post("/auth/logout");
-    } catch {}
-
+    localStorage.removeItem("token");
     setUser(false);
   }
 
