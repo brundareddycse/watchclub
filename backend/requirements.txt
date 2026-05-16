@@ -1,1 +1,9 @@
-
+fastapi
+uvicorn
+motor
+python-dotenv
+passlib[bcrypt]
+python-jose
+python-multipart
+bcrypt
+httpx==0.27.0
