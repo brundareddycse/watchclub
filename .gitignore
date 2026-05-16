@@ -1,1 +1,9 @@
-
+node_modules/
+venv/
+.env
+__pycache__/
+dist/
+build/
+*.log
+.DS_Store
+.vscode/
