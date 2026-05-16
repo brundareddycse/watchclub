@@ -10,18 +10,27 @@ export default function Library() {
 
   useEffect(() => {
 
-    async function load() {
+   async function addDemoMovie() {
 
-      try {
+  const alreadyExists = titles.find(
+    (m) => m.title === "Interstellar"
+  );
 
-        const r = await api.get("/library");
+  if (alreadyExists) return;
 
-        setTitles(r.data.movies || []);
+  const movie = {
+    title: "Interstellar",
+    year: "2014",
+    poster_url:
+      "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg"
+  };
 
-      } catch (err) {
-        console.log(err);
-      }
-    }
+  await api.post("/library", movie);
+
+  const r = await api.get("/library");
+
+  setTitles(r.data.movies || []);
+}
 
     load();
 
