@@ -1,5 +1,11 @@
 import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
 import { AuthProvider, useAuth } from "./lib/auth";
 
@@ -40,7 +46,9 @@ function GuestOnly({ children }) {
     );
   }
 
-  if (user) return <Navigate to="/app" replace />;
+  if (user) {
+    return <Navigate to="/app" replace />;
+  }
 
   return children;
 }
@@ -48,9 +56,10 @@ function GuestOnly({ children }) {
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
+      <BrowserRouter basename="/">
         <AuthProvider>
           <Routes>
+
             <Route path="/" element={<Landing />} />
 
             <Route
@@ -108,6 +117,7 @@ function App() {
             />
 
             <Route path="*" element={<Navigate to="/" replace />} />
+
           </Routes>
         </AuthProvider>
       </BrowserRouter>
