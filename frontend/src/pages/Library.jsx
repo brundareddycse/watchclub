@@ -8,7 +8,7 @@ export default function Library() {
   const [titles, setTitles] = useState([]);
 
   useEffect(() => {
-    api.get("/titles").then((r) => {
+    api.get("/library").then((r) => {
       setTitles(r.data);
     });
   }, []);
