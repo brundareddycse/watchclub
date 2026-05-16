@@ -1,139 +1,91 @@
-import { useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+const AuthCtx = createContext(null);
 
-import { useAuth } from "../lib/auth";
+export function AuthProvider({ children }) {
 
-export default function Auth({ mode }) {
-
-  const nav = useNavigate();
-
-  const { login, register } = useAuth();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const isLogin = mode === "login";
+  const [user, setUser] = useState(null);
 
 
-  async function submit(e) {
+  useEffect(() => {
 
-    e.preventDefault();
+    const saved = localStorage.getItem("watchclub-user");
 
-    let ok = false;
-
-    if (isLogin) {
-
-      ok = await login(email, password);
-
+    if (saved) {
+      setUser(JSON.parse(saved));
     } else {
-
-      ok = await register(
-        name,
-        email,
-        password
-      );
+      setUser(false);
     }
 
-    if (ok) {
-      nav("/app");
-    } else {
-      alert("Authentication failed");
-    }
+  }, []);
+
+
+  async function login(email, password) {
+
+    const user = {
+      id: 1,
+      name: "Watchclub User",
+      email,
+    };
+
+    localStorage.setItem(
+      "watchclub-user",
+      JSON.stringify(user)
+    );
+
+    setUser(user);
+
+    return true;
+  }
+
+
+  async function register(name, email, password) {
+
+    const user = {
+      id: 1,
+      name,
+      email,
+    };
+
+    localStorage.setItem(
+      "watchclub-user",
+      JSON.stringify(user)
+    );
+
+    setUser(user);
+
+    return true;
+  }
+
+
+  async function logout() {
+
+    localStorage.removeItem("watchclub-user");
+
+    setUser(false);
   }
 
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center px-6">
-
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.03] p-8"
-      >
-
-        <h1 className="text-white text-4xl font-display mb-2">
-
-          {isLogin ? "Welcome back" : "Create account"}
-
-        </h1>
-
-        <p className="text-white/50 mb-8">
-
-          Enter your details below.
-
-        </p>
-
-
-        {!isLogin && (
-
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            className="w-full px-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white mb-4"
-          />
-
-        )}
-
-
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="w-full px-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white mb-4"
-        />
-
-
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="w-full px-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white mb-6"
-        />
-
-
-        <button
-          className="w-full py-4 rounded-2xl bg-white text-black font-medium"
-        >
-
-          {isLogin ? "Login" : "Create Account"}
-
-        </button>
-
-
-        <div className="text-white/40 text-sm mt-6 text-center">
-
-          {isLogin ? (
-            <>
-              Don’t have an account?{" "}
-
-              <Link
-                to="/signup"
-                className="text-white"
-              >
-                Sign up
-              </Link>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-
-              <Link
-                to="/login"
-                className="text-white"
-              >
-                Login
-              </Link>
-            </>
-          )}
-
-        </div>
-
-      </form>
-
-    </div>
+    <AuthCtx.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthCtx.Provider>
   );
+}
+
+
+export function useAuth() {
+  return useContext(AuthCtx);
 }
