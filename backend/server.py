@@ -1,5 +1,13 @@
-from fastapi import FastAPI
+import os
+import bcrypt
+import jwt
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -11,36 +19,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-fake_user = {
-    "id": 1,
-    "name": "Brunda",
-    "email": "demo@watchclub.com"
-}
+MONGO_URL = os.getenv("MONGO_URL")
+JWT_SECRET = os.getenv("JWT_SECRET")
+
+client = MongoClient(MONGO_URL)
+db = client.watchclub
+
+users = db.users
+movies = db.movies
+friends = db.friends
+recommendations = db.recommendations
+
+
+def create_token(user_id):
+    payload = {
+        "id": str(user_id),
+        "exp": datetime.utcnow() + timedelta(days=7)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+def decode_token(token):
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        return None
+
 
 @app.get("/api")
 def root():
     return {"message": "Watchclub API running"}
 
-@app.get("/api/auth/me")
-def me():
-    return fake_user
 
 @app.post("/api/auth/register")
 def register(data: dict):
-    return {
-        "id": 1,
-        "name": data.get("name"),
-        "email": data.get("email")
-    }
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
 
-@app.post("/api/auth/login")
-def login(data: dict):
-    return {
-        "id": 1,
-        "name": "Brunda",
-        "email": data.get("email")
-    }
-
-@app.post("/api/auth/logout")
-def logout():
     return {"ok": True}
