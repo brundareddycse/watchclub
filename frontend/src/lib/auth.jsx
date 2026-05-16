@@ -1,28 +1,31 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { api, formatApiError } from "./api";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { api } from "./api";
 
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-
-  const refresh = useCallback(async () => {
-    try {
-      const { data } = await api.get("/auth/me");
-      setUser(data);
-    } catch {
-      setUser(false);
-    }
-  }, []);
+  const [user, setUser] = useState(false);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    async function check() {
+      try {
+        const { data } = await api.get("/auth/me");
+        setUser(data);
+      } catch {
+        setUser(false);
+      }
+    }
 
-  const login = async (email, password) => {
-    setError("");
+    check();
+  }, []);
 
+  async function login(email, password) {
     try {
       const { data } = await api.post("/auth/login", {
         email,
@@ -31,15 +34,12 @@ export function AuthProvider({ children }) {
 
       setUser(data);
       return true;
-    } catch (e) {
-      setError(formatApiError(e));
+    } catch {
       return false;
     }
-  };
+  }
 
-  const register = async (name, email, password) => {
-    setError("");
-
+  async function register(name, email, password) {
     try {
       const { data } = await api.post("/auth/register", {
         name,
@@ -49,30 +49,26 @@ export function AuthProvider({ children }) {
 
       setUser(data);
       return true;
-    } catch (e) {
-      setError(formatApiError(e));
+    } catch {
       return false;
     }
-  };
+  }
 
-  const logout = async () => {
+  async function logout() {
     try {
       await api.post("/auth/logout");
     } catch {}
 
     setUser(false);
-  };
+  }
 
   return (
     <AuthCtx.Provider
       value={{
         user,
-        error,
-        setError,
         login,
         register,
         logout,
-        refresh,
       }}
     >
       {children}
